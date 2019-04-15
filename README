@@ -1,0 +1,8 @@
+- Added support to the print string function like requested in the text! 
+- Added support for int printing, int writing, and everything else.
+- Added a bad memory manager, reading/writing to sectors, and ClearScreen Functions
+- Couldn't find anything on far pointers and Bruce's C compiler so I wrote my own with a struct.
+- Wrote a basic vesa driver in case I wanted to escape 16-bits at some point.
+- Added Necessary Assembly for some functions, could inline it since I now know about #asm
+- ExtInterrupt Added so that I can use es:di
+- Malloc bug
