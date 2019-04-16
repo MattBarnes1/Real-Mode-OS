@@ -74,10 +74,7 @@ void main()
 	 writechar = writeCharacter_Text;
 	switchVideoMode_Text(0x6A);
 	clearScreen(0x00, 0x0A);
-	printString_Text("Return\r\0", 0);
-	printString_Text("Newline\n\0", 0);
-
-	//interrupt(33,4,"kitty2\0",2,0);
+	interrupt(33,4,"kitty2\0",2,0);
 	stop();
 }
 
