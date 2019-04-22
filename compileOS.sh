@@ -13,7 +13,7 @@ gcc -o loadFile loadFile.c
 as86 kernel.asm -o kasm.o
 ld86 -o kernel -d kernel.o kasm.o malloc.o Math.o UtilityItems.o  DiskIO.o String.o 
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=259 
-#./loadFile kitty1
+./loadFile kitty1
 ./loadFile kitty2
 bcc -ansi -c -o fib.o fib.c
 as86 blackdos.asm -o bdos_asm.o

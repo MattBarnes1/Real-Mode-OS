@@ -64,6 +64,8 @@ void (*writechar)(char);
 
 void main()
 {
+    int i = 0;
+    int g = 0;
  	makeInterrupt21();
 	printString = printString_Text;
 	clearScreen = ClearScreen_Text;
@@ -73,11 +75,12 @@ void main()
 	readString = readString_Text;
 	 writechar = writeCharacter_Text;
 	switchVideoMode_Text(0x6A);
-	clearScreen(0x00, 0x0A);
-	printString_Text("Return\r\0", 0);
-	printString_Text("Newline\n\0", 0);
-
-	//interrupt(33,4,"kitty2\0",2,0);
+	clearScreen(0x01, 0x0B);
+    for(i = 0; i < 40; i++)
+    {
+        writeInt(i, 0);
+        printString(" \n\0", 0);      
+    }
 	stop();
 }
 
@@ -92,8 +95,8 @@ void KeyboardInterrupt()
 char Scrolling = 0;
 int abackground = 0x0;
 int aforeground = 0xA;
-int ScreenTextColumns = 800/8;
-int ScreenTextRows = 36;
+int ScreenTextColumns = 100;
+int ScreenTextRows = 39;
 int xCursor = 0;
 int yCursor = 0;
 
@@ -112,6 +115,8 @@ void HideCursor()
 
 void setCursorPosition_Text(int X, int Y)
 {	
+    int AX;
+    int DX;
 	if(xCursor >= ScreenTextColumns)
 	{
 		xCursor = 0;
@@ -123,8 +128,8 @@ void setCursorPosition_Text(int X, int Y)
 		xCursor = 0;		
 		ScrollDown_Text();
 	}
-	int AX = SetRegister(2, 0);
-	int DX = SetRegister(Y, X);
+	AX = SetRegister(2, 0);
+	DX = SetRegister(Y, X);
 	xCursor = X;
 	yCursor = Y;	
 	interrupt(16, AX, 0, 0,DX);
@@ -132,7 +137,7 @@ void setCursorPosition_Text(int X, int Y)
 
 void ScrollDown_Text()
 {
-		interrupt(0x10, SetRegister(0x06, 1),SetRegister(abackground >> 4, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
+		interrupt(0x10, SetRegister(0x06, 1),SetRegister(abackground, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 }
 
 void IncrementYCursorCheck_Text()
@@ -146,7 +151,7 @@ void IncrementYCursorCheck_Text()
 void writeCharacter_Text(char c)
 {	
 	int BX;
-	int AX = SetRegister(9, c);
+	int AX = SetRegister(0xE, c);
 	if(c == '\0') return;
 	if(c == '\r') return;
 	if(c == '\n')
@@ -155,7 +160,7 @@ void writeCharacter_Text(char c)
 		yCursor++;
 	}
 	else {
-		interrupt(16, AX, SetRegister(0, abackground | aforeground), 1, 0);
+		interrupt(16, AX, SetRegister(0, abackground | aforeground), 0, 0);
 		xCursor++;
 	}
 	setCursorPosition_Text(xCursor, yCursor);
@@ -172,14 +177,14 @@ void switchVideoMode_Text(int x)
 
 void ScrollUp_Text()
 {
-	interrupt(0x10, SetRegister(0x07, 1),SetRegister(abackground >> 4, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
+	interrupt(0x10, SetRegister(0x07, 1),SetRegister(abackground, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 	setCursorPosition_Text(xCursor, yCursor);	
 }
 
 
 void SetScreenColor_Text(char background, char foreground)
 {
-	abackground = background << 4;
+	abackground = background;
 	aforeground = foreground;
 	
 }
@@ -187,14 +192,19 @@ void SetScreenColor_Text(char background, char foreground)
 
 void ClearScreen_Text(char Background, char Foreground)
 {	
-	SetScreenColor_Text(Background,Foreground);
-	interrupt(0x10, SetRegister(0x06, 0),SetRegister(abackground >> 4, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
-	setCursorPosition_Text(0,0);	
+    int BX;
+    if(Background <= 8 && Foreground <= 16 && Background > 0 && Foreground > 0)
+    {  
+        BX = SetRegister(Background-1, Foreground-1);   
+        SetScreenColor_Text(Background-1,Foreground-1);
+        interrupt(0x10, SetRegister(0x06, 0),BX,0, SetRegister(ScreenTextRows, ScreenTextColumns));
+        setCursorPosition_Text(0,0);	   
+    }
 }
 
 void printString_Text(char* c, int printval)
 {	
-	if (printval != 1)
+	if (printval == 0)
 	{
 
 		while (*c != '\0')
@@ -203,7 +213,8 @@ void printString_Text(char* c, int printval)
 			c++;
 		}
 	}
-	else {
+	else 
+    {
 		while (*c != '\0')
 		{
 			interrupt(23, *c, 0, 0, 0);
@@ -219,7 +230,7 @@ void writeInt_Text(int Int, int location)
 
 	char *myReturn = itostr(Int);
 	printString_Text(myReturn, location);
-
+    free(myReturn);
 }
 
 void readString_Text(char* CharArray)
@@ -290,7 +301,7 @@ void printLogo()
 
 void error(int myErrorCode)
 {
-	clearScreen(0x1, 0x7);
+	clearScreen(0x2, 0x8);
 	printString("Fatal Error Detected:\n\0", 0);
 	switch(myErrorCode)
 	{
@@ -341,7 +352,6 @@ void runProgram(int bx, int cx)
 void stop()
 {
 
-	printString("Du3mp\0", 0);
 	while(1);
 
 }
@@ -352,73 +362,79 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
 	switch (ax) {
 	case 0:
+    printString("Print String Called\n\0", 1);
 		printString_Text(bx, cx);
 		break;
 	case 1:
-printString("Dump4\n\0", 1);
+printString("Read String Called\n\0", 1);
 		readString(bx);
 		break;
 	case 2:
-printString("Dump4\n\0", 1);
+printString("readSector Called\n\0", 1);
 		readSector(bx, cx);
 		break;
 	case 3:
-printString("Dump4\n\0", 1);
+printString("readFile Called\n\0", 1);
 		readFile(bx, cx, dx);
 		break;
 	case 4:
 
+printString("runProgram Called\n\0", 1);
 		runProgram(bx, cx);
 		break;
 	case 5:
+printString("stop Called\n\0", 1);
 		stop();
 		break;
 	case 6:
-printString("Dump4\n\0", 1);
+printString("writeSector Called\n\0", 1);
 		writeSector(bx, cx);
 		break;
 	case 7:
-printString("Dump4\n\0", 1);
+printString("deleteFile Called\n\0", 1);
 		deleteFile(bx);
 		break;
 
  	case 8:
-printString("Dump4\n\0", 1);
+        printString("writeFile Called\n\0", 1);
 		writeFile(bx,cx,dx);
 		break;
 	 case 9:
-printString("Dump4\n\0", 1);
+        printString("Int 9 called\n\0", 1);
 		break; 
 case 10:
-printString("Dump4\n\0", 1);
+        printString("Int 10 called\n\0", 1);
 		break;
 	case 11:
-printString("Dump4\n\0", 1);
+        printString("Int 11 called\n\0", 1);
 		break;
 	case 12:
 		printString("Stuff happened", 1);
 		clearScreen(bx, cx);
 		break;
 	case 13:
-		printString("Dump3\0", 1);
+		printString("writeInt Called\n\0", 1);
+        writeInt(bx, 1);
+        writeInt(cx, 1);
 		writeInt(bx, cx);
 		break;
-	case 14:	
-		printString("Dump2\0", 1);
+	case 14:
+        printString("readInt Called\n\0", 1);	
 		readInt(bx);
 		break;
-	case 15:	
-		printString("Dump1\0", 1);
+	case 15:
+		printString("error Called\n\0", 1);
 		error(bx);
 		break;
 	case 16:
-printString("Dump4\n\0", 1);
+printString("Int 16\n\0", 1);
 		break;
 	case 17:
+printString("writechar Called\n\0", 1);
 		writechar(bx);
 		break;
 	default: 
-printString("Dump4\n\0", 1);
+printString("Empty Called\n\0", 1);
 		break;
 	}
 }

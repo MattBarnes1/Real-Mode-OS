@@ -78,10 +78,11 @@ void DumpToAscii(char *myDataStructure)
 	
 }
 
-char IntConversion[7];
+//char IntConversion[7];
 /* Converts ints to strings */
 char * itostr(int myInt)
 {
+	char *IntConversion = (char *)malloc(7);
 	int anOldInt = myInt;
 	int modulo = 10;
 	int divReturn = 40;
