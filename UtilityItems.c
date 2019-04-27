@@ -1,35 +1,5 @@
 #include "malloc.h"
 
-
-char GetHexChar(int Char)
-{
-	switch(Char)
-	{
-		case 0:
-		return '0';
-		case 1: return '1';
-		case 2: return '2';
-		case 3: return '3';
-		case 4: return '4';
-		case 5: return '5';
-		case 6: return '6';
-		case 7: return '7';
-		case 8: return '8';
-		case 9: return '9';
-		case 10: return 'A';
-		case 11: return 'B';
-		case 12: return 'C';
-		case 13: return 'D';
-		case 14: return 'E';
-		case 15: return 'F';
-		default:
-			return 'X';
-
-
-	}
-}
-
-
 int SetRegister(char high, char low)
 {
 	int myReturn = 0;
@@ -39,50 +9,12 @@ int SetRegister(char high, char low)
 	return myReturn;
 }
 
-char *GetHex(int myInt)
-{
-	int Value = myInt;
-	int size = (2*sizeof(int)) + 2;
-	char *myReturn = (char *)malloc(size);
-	int position = size - 1;	
-	myReturn[0]='0';
-	myReturn[1]='x';
-	while(Value > 15)
-	{
-	  	int result = mod(Value ,16);
-	  	Value = div(Value,16);
-		myReturn[position] = GetHexChar(result);
-		position--;
-	}	
-	myReturn[position--] = GetHexChar(Value);
-	while(position > 1)
-	{
-		myReturn[position--] = '0';
-	}
-	return myReturn;
-}
 
-void DumpToAscii(char *myDataStructure)
-{
-	int i = 0;
-	int DSSize = sizeof(myDataStructure);
-	int finish  = div(DSSize,sizeof(char));
-	char *MyEmptyArray = (char *)malloc(DSSize + 1);
-	finish++;
-	interrupt(33, 13, finish, 0,0);
-	for(; i < finish - 1; i++)
-	{
-		MyEmptyArray[i] = myDataStructure[i];
-	}
-	MyEmptyArray[i+1] = '\0';
-	
-}
-
-//char IntConversion[7];
+char IntConversion[7];
 /* Converts ints to strings */
 char * itostr(int myInt)
 {
-	char *IntConversion = (char *)malloc(7);
+	//char *IntConversion = (char *)malloc(7);
 	int anOldInt = myInt;
 	int modulo = 10;
 	int divReturn = 40;

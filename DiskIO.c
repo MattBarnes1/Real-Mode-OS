@@ -1,9 +1,8 @@
-#include "UtilityItems.h"
 #include "string.h"
 #include "malloc.h"
+#include "UtilityItems.h"
 
-int myFreeSpace = 0;
-int myUsedSpace = 0;
+
 struct DiskMap
 {
 	char Sectors[512];
@@ -60,15 +59,7 @@ void writeSector(char *data, int sector)
 	int trackNumber = div(sector, 36);
 	interrupt(19, AX, data, trackNumber * 256 + relativesector, headNumber * 256);
 }
-void WriteToDiskDirectory(struct DiskDirectory *MyDiskDirectory )
-{
-	writeSector(MyDiskDirectory , 257);
-}
 
-void WriteToMap(struct DiskMap *MyDiskMap)
-{
-	writeSector(MyDiskMap, 256);
-}
 
 
 int FindNextAvailableSector(struct DiskMap *myDiskMap, int startat)
@@ -78,7 +69,6 @@ int FindNextAvailableSector(struct DiskMap *myDiskMap, int startat)
 	{
 		if(myDiskMap->Sectors[i] == 0x00)
 		{
-			interrupt(33,0,"\nDISK\n\0",1,0);
 			interrupt(33,13,myDiskMap->Sectors[i],1,0);
 			return i;
 		}
@@ -110,10 +100,10 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 
 	int lastSector = 0;	
 	struct DiskMap *myDisk = GetDiskMap();
-	struct DiskDirectory *MyData;// = GetDiskDirectory();	
-  	char Sectors[512];
+	struct DiskDirectory *DiskDir;// = GetDiskDirectory();	
+  	char *Sectors = (char *)malloc(512);//[512];
 	readSector(Sectors, 257);
-	MyData = (struct DiskDirectory*)Sectors;
+	DiskDir = (struct DiskDirectory*)Sectors;
 
 
 	if(name == 0 || name[0] == '\0' || strlen(name) > 8) interrupt(33,15,1, 0,0); //Bad File Name
@@ -121,9 +111,9 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 
 	for(i = 0; i < 16; i++)
 	{
-		if(MyData->Entries[i].EntryName[0] != 0)
+		if(DiskDir->Entries[i].EntryName[0] != 0)
 		{
-			if(strcmp(MyData->Entries[i].EntryName, name) == 0)
+			if(strcmp(DiskDir->Entries[i].EntryName, name) == 0)
 			{
 				interrupt(33,15,3,0,0);				//easy case, search for sectors;
 			}
@@ -134,8 +124,8 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 		}
 	}
 	if(zeroOffset == 0) interrupt(33,15,2,0,0);
-	memset(MyData->Entries[zeroOffset].EntryName, '\0', 7);
-	strcpy(MyData->Entries[zeroOffset].EntryName, name);	
+	memset(DiskDir->Entries[zeroOffset].EntryName, '\0', 7);
+	strcpy(DiskDir->Entries[zeroOffset].EntryName, name);	
 	for(g = 0; g < numberOfSectors; g++)
 	{
 		lastSector = FindNextAvailableSector(myDisk, lastSector);
@@ -144,18 +134,16 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 			interrupt(33,15,2,0,0);
 		} else {
 			myDisk->Sectors[lastSector] = 0xFF;
-			MyData->Entries[zeroOffset].ResidentSectors[g] = lastSector;
+			DiskDir->Entries[zeroOffset].ResidentSectors[g] = lastSector;
 			writeSector(BufferCopyFrom,lastSector);	
 			BufferCopyFrom += 512;
 		}
 	}	
 		
-	WriteToDiskDirectory(MyData);
-	//WriteToMap(myDisk);
-
-	free(MyData);
-
-	WriteToMap(myDisk);
+	writeSector( DiskDir , 257);
+	writeSector(myDisk, 256);
+	free(DiskDir);
+	free(Sectors);
 	free(myDisk);
 
 }
@@ -207,7 +195,7 @@ void readFile(char* fname, char* buffer, int* size)
 }
 
 
-
+/*
 void SetupDisk(int *Free, int *Used)
 {
 	int i;
@@ -230,25 +218,7 @@ void SetupDisk(int *Free, int *Used)
 	free(myMap);
 }
 
-int GetFreespaceKb()
-{	
-	return (myFreeSpace*512)/1024;
-}
-
-int GetUsedKb()
-{
-	return (myUsedSpace*512)/1024;
-
-}
-
-int GetTotalKb()
-{
-	return ((myFreeSpace + myUsedSpace)*512)/1024;
-}
-
-
-
-
+*/
 char ** GetFiles()
 {	
 	int i = 0;
@@ -291,38 +261,35 @@ void deleteFile(char *FileNameToDelete)
 	int g;
 	int i;
 	int zeroOffset = 0;
-	struct DiskDirectory *MyData;// = GetDiskDirectory();	
-  	char Sectors[512];
+	struct DiskDirectory *DiskDir;// = GetDiskDirectory();	
+  	char Sectors = (char *)malloc(512);
 	struct DiskMap *myDisk= GetDiskMap();
 	readSector(Sectors, 257);
-	MyData = (struct DiskDirectory*)Sectors;
-
-		interrupt(33,0,"HERE\0",0,0);
-		interrupt(33,0,FileNameToDelete,0,0);
+	DiskDir = (struct DiskDirectory*)Sectors;
 	for(i = 0; i < 16; i++)
 	{	
 
-		if(strcmp(MyData->Entries[i].EntryName, FileNameToDelete) == 0)
+		if(strcmp(DiskDir->Entries[i].EntryName, FileNameToDelete) == 0)
 		{
-			interrupt(33,0,"FOUND\n\0",0,0);
-			memset(MyData->Entries[i].EntryName, 0, 7);
+			memset(DiskDir->Entries[i].EntryName, 0, 7);
 			for(g = 0; g < 24; g++)
 			{
-				if(MyData->Entries[i].ResidentSectors[g] != 0)
+				if(DiskDir->Entries[i].ResidentSectors[g] != 0)
 				{
-					myDisk->Sectors[MyData->Entries[i].ResidentSectors[g]] = 0x00; //Free!
-					MyData->Entries[i].ResidentSectors[g] = 0x00;
+					myDisk->Sectors[DiskDir->Entries[i].ResidentSectors[g]] = 0x00; //Free!
+					DiskDir->Entries[i].ResidentSectors[g] = 0x00;
 				}
 			}
-			WriteToDiskDirectory(MyData);
-			WriteToMap(myDisk);
-			free(MyData);
+			
+			writeSector( DiskDir , 257);;
+			writeSector(myDisk, 256);
+			free(DiskDir);
 			free(myDisk);
+			free(Sectors);
 			return;
 		}
 	}
 
 	interrupt(33,15, 0,0,0);
-
 }
 

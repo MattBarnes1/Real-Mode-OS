@@ -18,17 +18,15 @@ char *strcpy(char *dest, char *src)
 {
 	char *OldDes = dest;
 	int i = 0;		
-	interrupt(33,0,src,0,0);
 	for(i; i < strlen(src) + 1; i++)
 	{			
-
-		OldDes[i] = src[i];
-			
+		OldDes[i] = src[i];			
 	}
 	return OldDes;
 }
+/*
 /*Concatenates(joins) two strings*/	
-char *strcat(char *dest, char *src)
+/*char *strcat(char *dest, char *src)
 {		
 	int i = strlen(dest);
 	int DestSize = sizeof(dest);
@@ -41,7 +39,7 @@ char *strcat(char *dest, char *src)
 	}
 	dest = RetVal; 
 	return dest;
-}
+}*/
 /*Compares two string*/	
 /*
 if Return value > 1 then it indicates str1 is less than str2.
@@ -50,6 +48,7 @@ if Return value > 0 then it indicates str2 is less than str1.
 
 if Return value = 0 then it indicates str1 is equal to str2.
 */
+
 int strcmp(char *str1, char *str2)
 {
 	int i = 0;
@@ -92,17 +91,13 @@ int strcmp(char *str1, char *str2)
 	}
 
 }
-
-/*Converts string to lowercase*/	
-//strlwr()
-/*Converts string to uppercase*/	
-//strupr()*	
+/*
 char *strstr(char *str1, char *str2)
 {
 
 
 }
-
+*/
 
 void memset(void *myArray, char myValue, int amount)
 {

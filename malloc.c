@@ -2,7 +2,7 @@
 //////////////////////
 //Memory Manager
 /////////////////////
-unsigned char myBytes[3000]; //Temporary
+unsigned char myBytes[5000]; //Temporary
 struct Segment
 {
 	struct Segment *NextSegment;
@@ -13,8 +13,8 @@ struct Segment *Head = 0;
 struct Segment *Tail = 0;
 struct Segment *Current = 0;
 
-unsigned short Freespace = 3000;//4000;
-unsigned short MaxSize = 3000;
+unsigned int Freespace = 5000;//4000;
+unsigned int MaxSize = 5000;
 
 
 void DumpMemory()

@@ -1,6 +1,4 @@
 int SetRegister(char high, char low);
-char *GetHex(int myInt);
-void DumpToAscii(char *myDataStructure);
 /* Converts ints to strings */
 char * itostr(int myInt);
 /* Stoi - String to Integer Conversion Function */
