@@ -24,10 +24,6 @@
 /*                                                                        */
 /* 3460:4/526 BlackDOS2020 kernel, Version 1.01, Spring 2018.             */
 
-#include "Math.h"
-#include "DiskIO.h"
-#include "UtilityItems.h"
-
 void switchVideoMode_Text(int x);
 void setCursorPosition_Text(int row, int column);
 void ScrollDown_Text();
@@ -45,9 +41,31 @@ void PrintRegisters(int, int, int, int);
 void error(int myErrorCode);
 void runProgram(int, int);
 void stop();
-
-
+void readSector(char * array, int sector);
+void writeSector(char *data, int sector);
+void writeFile(char *FileName, char *FileContents, int SectorsToWrite);
+void readFile(char *FileToReadFrom, char *FileStorageArea);
+void deleteFile(char *FileNameToDelete);
+char ** GetFiles();
+int mod(int a, int b);
+int div(int a, int b);
+int pow(int base, int exponent);
+unsigned int divu(unsigned int a, unsigned int b);
+int strlen(char *String);
+char *strcpy(char *dest, char *src);
+void memset(void *myArray, char myValue, int amount);
 void printString_Text(char *String, int Print);
+int SetRegister(char high, char low);
+/* Converts ints to strings */
+char * itostr(int myInt);
+/* Stoi - String to Integer Conversion Function */
+int stoi(char * myString);
+void GetFarPointerData(int segment, int offset, char *fromRead, int size);
+typedef struct
+{
+	unsigned int Address;
+	unsigned int Segment;
+} FARPTR;
 
 void main()
 {
@@ -55,7 +73,7 @@ void main()
 	switchVideoMode_Text(0x6A);
 	clearScreen(0x01, 0x0B);
 	printLogo();	
-	//interrupt(33,4,"kitty1\0",3,0);
+	interrupt(33,4,"kitty1\0",3,0);
 
 	
 	stop();
@@ -81,6 +99,114 @@ void ShowCursor()
 
 }
 
+int SetRegister(char high, char low)
+{
+	int myReturn = 0;
+	char *MyBase = &myReturn;
+	MyBase[0] = low;
+	MyBase[1] = high;
+	return myReturn;
+}
+
+
+char IntConversion[7];
+/* Converts ints to strings */
+char * itostr(int myInt)
+{
+	//char *IntConversion = (char *)malloc(7);
+	int anOldInt = myInt;
+	int modulo = 10;
+	int divReturn = 40;
+	int i;
+	char myVals[7];
+	char myVal;
+	int sizeCounter = 0;
+	int lastChar = 0;
+	char wasNeg = 0;
+	if (myInt < 0)
+	{
+		wasNeg = 1;
+		myInt *= -1;
+
+	}
+
+
+	while (divReturn != 0)
+	{
+
+		int returned = mod(anOldInt, modulo);
+		IntConversion[lastChar++] = 0x30 + returned;
+		divReturn = div(anOldInt, modulo);
+		anOldInt = divReturn;
+	}
+	IntConversion[lastChar] = '\0';
+
+	for (i = 0; i < lastChar; i++)
+	{
+		myVals[lastChar - i] = IntConversion[i];
+
+	}
+	for (i = 0; i < lastChar; i++)
+	{
+		IntConversion[i] = myVals[i + 1];
+	}
+
+
+	return IntConversion;
+}
+
+
+/* Stoi - String to Integer Conversion Function */
+int stoi(char * myString)
+{
+	int myValue = 0;
+	int Position = 0;
+	char myChars[7];
+	int i;
+	int size;
+	char c;
+	for (size = 0; size < 7; size++)
+	{
+		if (myString[size] == '\0')
+		{
+			break;
+		}
+	}
+
+
+	for (i = size - 1; i >= 0; i--)
+	{
+		myChars[size - 1 - i] = myString[i];
+
+	}
+	myChars[size] = '\0';
+
+	while (myChars[Position] != '\0')
+	{
+		if (Position != 0)
+		{
+			myValue += (myChars[Position] - 0x30)*pow(10, Position);
+		}
+		else {
+			myValue += (myChars[Position] - 0x30);
+		}
+
+		Position++;
+	}
+
+	return myValue;
+}
+
+
+
+void GetFarPointerData(int segment, int offset, char *fromRead, int size)
+{
+	int i;
+	for(i = 0; i < size; i++)
+	{
+		fromRead[i] = readFromMemory(segment, offset++);
+	}
+}
 
 void HideCursor()
 {
@@ -115,11 +241,424 @@ void ScrollDown_Text()
 	interrupt(0x10, SetRegister(0x06, 1), SetRegister(abackground, 0),0, 	SetRegister(ScreenTextRows, ScreenTextColumns));
 }
 
-void IncrementYCursorCheck_Text()
+
+
+
+
+
+
+/*Calculates the length of string*/
+
+int strlen(char *String)
 {
-	
-	setCursorPosition_Text(xCursor, yCursor);
+	int count = 0;
+	while(*String != 0) 
+	{
+		count++;
+		String++;
+	}
+	return count;
 }
+/*Copies a string to another string*/	
+char *strcpy(char *dest, char *src)
+{
+	char *OldDes = dest;
+	int i = 0;		
+	for(i; i < strlen(src) + 1; i++)
+	{			
+		OldDes[i] = src[i];			
+	}
+	return OldDes;
+}
+/*
+/*Concatenates(joins) two strings*/	
+/*char *strcat(char *dest, char *src)
+{		
+	int i = strlen(dest);
+	int DestSize = sizeof(dest);
+	int SourceSize = sizeof(src);
+	char *RetVal = malloc(DestSize + SourceSize);
+	strcpy(RetVal, dest);
+	for(i; i < strlen(src) + 1; i++)
+	{
+		dest[strlen(dest) + i] = src[i];	
+	}
+	dest = RetVal; 
+	return dest;
+}*/
+/*Compares two string*/	
+/*
+if Return value > 1 then it indicates str1 is less than str2.
+
+if Return value > 0 then it indicates str2 is less than str1.
+
+if Return value = 0 then it indicates str1 is equal to str2.
+*/
+
+int strcmp(char *str1, char *str2)
+{
+	int i = 0;
+	int g = 0;
+	char nomatch = 0;
+	int counter;
+	int str2Counter = 0;
+	int str1Len = strlen(str1);
+	int str2Len = strlen(str2);
+	if(str1Len >= str2Len) //find smalles
+		counter = str2Len;
+	else 
+		counter = str1Len;
+
+	if(counter == 0) return 1;
+	interrupt(33,13,counter,1,0);
+	for(i; i < counter; i++)
+	{
+		if(str1[i] != str2[i])
+		{
+			nomatch  = 1;
+			break;
+		}
+	}
+	if(nomatch == 0)
+	{
+		if(str1Len == str2Len)
+		{
+			return 0;
+		} 
+		else if(str1Len < str2Len)
+		{
+			return 1;
+		} else {
+			return 2;
+		}
+	} 
+	else {
+		return 1;
+	}
+
+}
+/*
+char *strstr(char *str1, char *str2)
+{
+
+
+}
+*/
+
+void memset(void *myArray, char myValue, int amount)
+{
+	char *myPtr = (char *)myArray;
+	int i;
+	for(i= 0; i < amount; i++)
+	{
+		myPtr[i] = myValue;
+	}
+}
+
+
+
+
+
+/* Modulo Operator */
+int mod(int a, int b)
+{	
+	int x = a;
+	while (x >= b) x = x - b;
+	return x;
+}
+
+int div(int a, int b)
+{
+	int q = 0;	
+	if(a < b) return 0;
+	while (q*b <= a) q++;
+	return q - 1;
+}
+
+unsigned int divu(unsigned int a, unsigned int b)
+{
+	unsigned int q = 0;	
+	if(a < b) return 0;
+	while (q*b <= a) q++;
+	return q - 1;
+}
+
+
+/* Pow - takes the base to the power of the exponent*/
+int pow(int base, int exponent)
+{
+	int myReturn = 1;
+	int i = 0;
+	for (i; i < exponent; i++)
+	{
+		myReturn = myReturn * base;
+	}
+	return myReturn;
+
+}
+
+
+struct DiskMap
+{
+	char Sectors[512];
+};
+
+struct DirectoryEntry
+{
+	char EntryName[8];
+	char ResidentSectors[24];
+};
+
+
+struct DiskDirectory
+{
+	struct DirectoryEntry Entries[16];
+};
+
+void readSector(char * array, int sector)
+{
+	int read;
+	int AX = SetRegister(0x2, 1);
+	int headNumber = mod(div(sector, 18), 2);
+	int relativesector = mod(sector, 18) + 1;
+	int trackNumber = div(sector, 36);
+	read = interrupt(19, AX, array, trackNumber * 256 + relativesector, headNumber * 256);//SetRegister(trackNumber, relativesector), SetRegister(headNumber, 0));
+
+	if(read != 1)
+	{
+		interrupt(33, 15,22,0,0);
+	}
+}
+
+
+
+
+void writeSector(char *data, int sector)
+{
+	int AX = 0x301;
+	int relativesector = mod(sector, 18) + 1;
+	int headNumber = mod(div(sector, 18), 2);
+	int trackNumber = div(sector, 36);
+	interrupt(19, AX, data, trackNumber * 256 + relativesector, headNumber * 256);
+}
+
+
+
+int FindNextAvailableSector(struct DiskMap *myDiskMap, int startat)
+{
+	int i = startat;
+	for(; i < 256; i++)
+	{
+		if(myDiskMap->Sectors[i] == 0x00)
+		{
+			interrupt(33,13,myDiskMap->Sectors[i],1,0);
+			return i;
+		}
+	}
+	return 0;
+}
+
+/*
+Write a disk file. bx 8 bxAddress of
+character array
+containing the
+file name.
+cxAddress of
+character array
+where file contents
+will be stored.
+dx Tdotal
+number of
+sectors to
+be written.
+Call writeFile(bx,cx,dx)
+*/
+void writeFile(char* name, char* buffer, int numberOfSectors)
+{
+	int i;
+	int g;
+	int zeroOffset = 0;
+	char Sectors2[512];
+  	char Sectors[512];
+	char *BufferCopyFrom = buffer;
+
+	int lastSector = 0;	
+	struct DiskMap *myDisk;
+	struct DiskDirectory *DiskDir;	
+	readSector(Sectors2, 256);
+	myDisk = (struct DiskMap *)Sectors2;
+	readSector(Sectors, 257);
+	DiskDir = (struct DiskDirectory*)Sectors;
+
+
+	if(name == 0 || name[0] == '\0' || strlen(name) > 8) interrupt(33,15,1, 0,0); //Bad File Name
+
+
+	for(i = 0; i < 16; i++)
+	{
+		if(DiskDir->Entries[i].EntryName[0] != 0)
+		{
+			if(strcmp(DiskDir->Entries[i].EntryName, name) == 0)
+			{
+				interrupt(33,15,3,0,0);				//easy case, search for sectors;
+			}
+		} 
+		else if (zeroOffset == 0)
+		{
+			zeroOffset = i; //the offset we know is empty;
+		}
+	}
+	if(zeroOffset == 0) interrupt(33,15,2,0,0);
+	memset(DiskDir->Entries[zeroOffset].EntryName, '\0', 7);
+	strcpy(DiskDir->Entries[zeroOffset].EntryName, name);	
+	for(g = 0; g < numberOfSectors; g++)
+	{
+		lastSector = FindNextAvailableSector(myDisk, lastSector);
+		if(lastSector == 0)
+		{
+			interrupt(33,15,2,0,0);
+		} else {
+			myDisk->Sectors[lastSector] = 0xFF;
+			DiskDir->Entries[zeroOffset].ResidentSectors[g] = lastSector;
+			writeSector(BufferCopyFrom,lastSector);	
+			BufferCopyFrom += 512;
+		}
+	}	
+		
+	writeSector( DiskDir , 257);
+	writeSector(myDisk, 256);
+
+}
+
+
+/*Read a disk file. ax 3 
+bx = Address of
+character array
+containing the
+file name.
+cx = Address of
+character array
+where file contents
+will be stored.
+dx = Total
+number of
+sectors to
+read.*/
+void readFile(char* fname, char* buffer, int* size)
+{
+	int i;
+	int g;
+	char Sectors[512];	
+	struct DiskDirectory *MyData;// = GetDiskDirectory();
+	readSector(Sectors, 257);
+	MyData = (struct DiskDirectory*)Sectors;
+
+	for(i = 0; i < 16; i++)
+	{
+		if(strcmp(MyData->Entries[i].EntryName, fname) == 0)
+		{
+			for(g= 0; g < 24; g++)
+			{
+				if(MyData->Entries[i].ResidentSectors[g] == 0)
+				{		
+					return;
+				} else {
+					readSector(buffer, MyData->Entries[i].ResidentSectors[g]);
+					buffer += 512;
+					(*size)++;
+				}
+			}
+
+
+			return;	
+		} 
+	}
+
+	interrupt(33, 15, 0, 0,0);
+}
+
+
+char ** GetFiles()
+{	
+	int i = 0;
+	int cCount = 0;
+	char myChars[2];
+	char StringsInner[16][9];// = (char **)malloc(16 * sizeof(char *));
+	char Sectors[512];
+	struct DiskDirectory *MyData;
+	readSector(Sectors, 257);
+	MyData = (struct DiskDirectory*)Sectors;
+	myChars[1] = '\0';
+	for(i = 0; i < 16; i++)
+	{
+		if(MyData->Entries[i].EntryName[0] != 0)
+		{
+
+			//StringsInner[cCount] = (char *)malloc(9);
+			strcpy(StringsInner[cCount], MyData->Entries[i].EntryName);
+
+			StringsInner[cCount][8] = 0;
+			cCount++;
+		} 
+	}
+	if(cCount != 15)
+	{
+		cCount++;
+		
+		StringsInner[cCount][0] = 0;
+	}	
+
+	return StringsInner;
+}
+
+
+
+/*Delete a disk file. ax7 bxAddress of
+character array
+containing the
+file name.
+*/
+void deleteFile(char *FileNameToDelete)
+{
+
+	int g;
+	int i;
+	int zeroOffset = 0;
+	struct DiskDirectory *DiskDir;// = GetDiskDirectory();	
+  	struct DiskMap *myDisk;
+	char Sectors[512];// = (char *)malloc(512);
+  	char Sectors2[512];// = (char *)malloc(512);
+	readSector(Sectors2, 256);
+	myDisk = (struct DiskMap *)Sectors2;
+	readSector(Sectors, 257);
+	DiskDir = (struct DiskDirectory*)Sectors;
+	for(i = 0; i < 16; i++)
+	{	
+
+		if(strcmp(DiskDir->Entries[i].EntryName, FileNameToDelete) == 0)
+		{
+			memset(DiskDir->Entries[i].EntryName, 0, 7);
+			for(g = 0; g < 24; g++)
+			{
+				if(DiskDir->Entries[i].ResidentSectors[g] != 0)
+				{
+					myDisk->Sectors[DiskDir->Entries[i].ResidentSectors[g]] = 0x00; //Free!
+					DiskDir->Entries[i].ResidentSectors[g] = 0x00;
+				}
+			}
+			
+			writeSector( DiskDir , 257);;
+			writeSector(myDisk, 256);
+			//free(DiskDir);
+			//free(myDisk);
+			//free(Sectors);
+			return;
+		}
+	}
+
+	interrupt(33,15, 0,0,0);
+}
+
 
 
 
