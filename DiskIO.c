@@ -1,5 +1,4 @@
 #include "string.h"
-#include "malloc.h"
 #include "UtilityItems.h"
 
 
@@ -35,20 +34,7 @@ void readSector(char * array, int sector)
 	}
 }
 
-struct DiskDirectory *GetDiskDirectory()
-{
-	char *Sectors = (char *)malloc(sizeof(struct DiskDirectory));
-	readSector(Sectors, 257);
-	return (struct DiskDirectory*)Sectors;
-}
 
-
-struct DiskMap *GetDiskMap()
-{
-	char *Sectors = (char *)malloc(sizeof(struct DiskMap));
-	readSector(Sectors, 256);
-	return (struct DiskMap *)Sectors;
-}
 
 
 void writeSector(char *data, int sector)
@@ -96,12 +82,15 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 	int i;
 	int g;
 	int zeroOffset = 0;
+	char Sectors2[512];
+  	char Sectors[512];
 	char *BufferCopyFrom = buffer;
 
 	int lastSector = 0;	
-	struct DiskMap *myDisk = GetDiskMap();
-	struct DiskDirectory *DiskDir;// = GetDiskDirectory();	
-  	char *Sectors = (char *)malloc(512);//[512];
+	struct DiskMap *myDisk;
+	struct DiskDirectory *DiskDir;	
+	readSector(Sectors2, 256);
+	myDisk = (struct DiskMap *)Sectors2;
 	readSector(Sectors, 257);
 	DiskDir = (struct DiskDirectory*)Sectors;
 
@@ -142,9 +131,6 @@ void writeFile(char* name, char* buffer, int numberOfSectors)
 		
 	writeSector( DiskDir , 257);
 	writeSector(myDisk, 256);
-	free(DiskDir);
-	free(Sectors);
-	free(myDisk);
 
 }
 
@@ -166,7 +152,11 @@ void readFile(char* fname, char* buffer, int* size)
 {
 	int i;
 	int g;
-	struct DiskDirectory *MyData = GetDiskDirectory();
+	char Sectors[512];	
+	struct DiskDirectory *MyData;// = GetDiskDirectory();
+	readSector(Sectors, 257);
+	MyData = (struct DiskDirectory*)Sectors;
+
 	for(i = 0; i < 16; i++)
 	{
 		if(strcmp(MyData->Entries[i].EntryName, fname) == 0)
@@ -175,7 +165,6 @@ void readFile(char* fname, char* buffer, int* size)
 			{
 				if(MyData->Entries[i].ResidentSectors[g] == 0)
 				{		
-					free(MyData);	
 					return;
 				} else {
 					readSector(buffer, MyData->Entries[i].ResidentSectors[g]);
@@ -185,54 +174,31 @@ void readFile(char* fname, char* buffer, int* size)
 			}
 
 
-			free(MyData);
 			return;	
 		} 
 	}
 
-	free(MyData);
 	interrupt(33, 15, 0, 0,0);
 }
 
 
-/*
-void SetupDisk(int *Free, int *Used)
-{
-	int i;
-	struct DiskMap *myMap = GetDiskMap();
-	*Free = 0;
-	*Used = 0;
-	for(i = 0; i < 256; i++)
-	{
-		if(myMap->Sectors[i] == 0xFF)
-		{
-			(*Used)++;
-		}	
-		else
-		{
-			(*Free)++;
-		}
-	}
-	myFreeSpace = *Free;
-	myUsedSpace = *Used;
-	free(myMap);
-}
-
-*/
 char ** GetFiles()
 {	
 	int i = 0;
 	int cCount = 0;
 	char myChars[2];
-	char **StringsInner = (char **)malloc(16 * sizeof(char *));
-	struct DiskDirectory *MyData = GetDiskDirectory();
+	char StringsInner[16][9];// = (char **)malloc(16 * sizeof(char *));
+	char Sectors[512];
+	struct DiskDirectory *MyData;
+	readSector(Sectors, 257);
+	MyData = (struct DiskDirectory*)Sectors;
 	myChars[1] = '\0';
 	for(i = 0; i < 16; i++)
 	{
 		if(MyData->Entries[i].EntryName[0] != 0)
 		{
 
-			StringsInner[cCount] = (char *)malloc(9);
+			//StringsInner[cCount] = (char *)malloc(9);
 			strcpy(StringsInner[cCount], MyData->Entries[i].EntryName);
 
 			StringsInner[cCount][8] = 0;
@@ -242,9 +208,10 @@ char ** GetFiles()
 	if(cCount != 15)
 	{
 		cCount++;
-		StringsInner[cCount] = 0;
+		
+		StringsInner[cCount][0] = 0;
 	}	
-	free(MyData);
+
 	return StringsInner;
 }
 
@@ -262,8 +229,11 @@ void deleteFile(char *FileNameToDelete)
 	int i;
 	int zeroOffset = 0;
 	struct DiskDirectory *DiskDir;// = GetDiskDirectory();	
-  	char Sectors = (char *)malloc(512);
-	struct DiskMap *myDisk= GetDiskMap();
+  	struct DiskMap *myDisk;
+	char Sectors[512];// = (char *)malloc(512);
+  	char Sectors2[512];// = (char *)malloc(512);
+	readSector(Sectors2, 256);
+	myDisk = (struct DiskMap *)Sectors2;
 	readSector(Sectors, 257);
 	DiskDir = (struct DiskDirectory*)Sectors;
 	for(i = 0; i < 16; i++)
@@ -283,9 +253,9 @@ void deleteFile(char *FileNameToDelete)
 			
 			writeSector( DiskDir , 257);;
 			writeSector(myDisk, 256);
-			free(DiskDir);
-			free(myDisk);
-			free(Sectors);
+			//free(DiskDir);
+			//free(myDisk);
+			//free(Sectors);
 			return;
 		}
 	}

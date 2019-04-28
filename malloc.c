@@ -2,19 +2,21 @@
 //////////////////////
 //Memory Manager
 /////////////////////
-unsigned char myBytes[5000]; //Temporary
+unsigned char myBytes[1000]; //Temporary
 struct Segment
 {
 	struct Segment *NextSegment;
+	
 	unsigned int ArrayStart;
 	unsigned int ArrayEnd;
 };
+
 struct Segment *Head = 0;
 struct Segment *Tail = 0;
 struct Segment *Current = 0;
 
-unsigned int Freespace = 5000;//4000;
-unsigned int MaxSize = 5000;
+unsigned int Freespace = 1000;//4000;
+unsigned int MaxSize = 1000;
 
 
 void DumpMemory()
@@ -114,8 +116,6 @@ void free(void *myPtr)
 	unsigned int MyValue = (unsigned int)((char *)myPtr - sizeof(struct Segment));
 	struct Segment *Ptr = Head;
 	struct Segment *Last = Head;
-//		interrupt(33, 0, "\nMalloc destroyed segment:\0", 0, 0);
-	//	interrupt(33, 13, MyValue, 0 , 0);
 		
 
 	while (Ptr->ArrayEnd > MyValue) //Implement search

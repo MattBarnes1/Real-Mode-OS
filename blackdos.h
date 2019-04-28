@@ -1,4 +1,4 @@
-#define PRINTS(x)  interrupt(33,0,x,1,0)
+#define PRINTS(x)  interrupt(33,0,x,0,0)
 #define PRINTN(x)  interrupt(33,13,x,0,0)
 #define LPRINTS(x) interrupt(33,0,x,1,0)
 #define LPRINTN(x) interrupt(33,13,x,1,0)

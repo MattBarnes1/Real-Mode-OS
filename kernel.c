@@ -26,13 +26,12 @@
 
 #include "Math.h"
 #include "DiskIO.h"
-#include "malloc.h"
-#include "string.h" 
 #include "UtilityItems.h"
+
 void switchVideoMode_Text(int x);
 void setCursorPosition_Text(int row, int column);
 void ScrollDown_Text();
-void ClearScreen_Text(char Background, char Foreground);
+void clearScreen(char Background, char Foreground);
 void ScrollUp_Text();
 void writeInt_Text(int Int, int location);
 void SetScreenColor_Text(int background, int foreground);
@@ -42,31 +41,21 @@ void readInt_Text(int *Int);
 void writeCharacter_Text(char c);
 void handleInterrupt21(int, int, int, int);
 void printLogo();
-//void KeyboardInterrupt();
 void PrintRegisters(int, int, int, int);
-void DebugPrintRegisters();
 void error(int myErrorCode);
-//https://courses.cs.washington.edu/courses/cse457/98a/tech/OpenGL/font.c
 void runProgram(int, int);
 void stop();
 
-void (*setTextColor)(int, int);
 
 void printString_Text(char *String, int Print);
 
 void main()
 {
-    int i = 0;
-    int g = 0;
-	char *Test = "hello!\0";
  	makeInterrupt21();
-	setTextColor = SetScreenColor_Text;
 	switchVideoMode_Text(0x6A);
-	//clearScreen(0x02, 0x0B);
-	ClearScreen_Text(0x01, 0x0B);
-	
+	clearScreen(0x01, 0x0B);
 	printLogo();	
-	interrupt(33,4,"kitty1\0",3,0);
+	//interrupt(33,4,"kitty1\0",3,0);
 
 	
 	stop();
@@ -79,7 +68,6 @@ void KeyboardInterrupt()
 }
 
 
-char Scrolling = 0;
 int abackground = 0x0;
 int aforeground = 0xA;
 int ScreenTextColumns = 100;
@@ -148,7 +136,7 @@ void writeCharacter_Text(char c)
 	}
 	else {
 		xCursor++;
-		interrupt(16, AX, SetRegister(abackground | aforeground, abackground | aforeground), 0, 0);
+		interrupt(16, AX, SetRegister(0, abackground | aforeground), 0, 0);
 	}
 	setCursorPosition_Text(xCursor, yCursor);
 }
@@ -177,7 +165,7 @@ void SetScreenColor_Text(char background, char foreground)
 }
 
 
-void ClearScreen_Text(char Background, char Foreground)
+void clearScreen(char Background, char Foreground)
 {	
     int BX;
     if(Background <= 8 && Foreground <= 16 && Background > 0 && Foreground > 0)
@@ -205,7 +193,6 @@ void printString_Text(char* c, int printval)
     {
 		while (*c != '\0')
 		{
-		//	writeCharacter_Text(*c);
 			interrupt(23, *c, 0, 0, 0);
 			c++;
 		}
@@ -219,7 +206,6 @@ void writeInt_Text(int Int, int location)
 
 	char *myReturn = itostr(Int);
 	printString_Text(myReturn, location);
-    //free(myReturn);
 }
 
 void readString_Text(char* CharArray)
@@ -282,15 +268,9 @@ void printLogo()
 /* VVVVVVVVVVVVVVVVVVVVVVVV */
 
 
-/*void HandleMouse(int X, int Y, int ButtonsPressed)
-{
-
-
-}*/
-
 void error(int myErrorCode)
 {
-	ClearScreen_Text(0x2, 0x8);
+	clearScreen(0x2, 0x8);
 	printString_Text("Fatal Error Detected:\n\0", 0);
 	switch(myErrorCode)
 	{
@@ -322,18 +302,16 @@ void error(int myErrorCode)
 
 void runProgram(int bx, int cx)
 {
-	char *Data = (char *)malloc(2000);
+	char Data[512];
 	char *Test = Data;
 	int i = 0, g = 0;
 	int size = 0;
 	readFile(bx, Data,&size);
-	/*for(i = 0; i < (size * 512); i++)
+	for(i = 0; i < (size * 512); i++)
 	{
 		putInMemory(0x1000*cx, i, Data[i]);
-	}*/
-	free(Data);
-	while(1);
-	launchProgram(&Data);
+	}
+	launchProgram(0x1000*cx);
 
 }
 
@@ -350,62 +328,62 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
 	switch (ax) {
 	case 0:
-    printString_Text("Print String Called\n\0", 1);
+//    printString_Text("Print String Called\n\0", 1);
 		printString_Text(bx, cx);
 		break;
 	case 1:
-printString_Text("Read String Called\n\0", 1);
+//printString_Text("Read String Called\n\0", 1);
 		readString_Text(bx);
 		break;
 	case 2:
-printString_Text("readSector Called\n\0", 1);
+//printString_Text("readSector Called\n\0", 1);
 		readSector(bx, cx);
 		break;
 	case 3:
-printString_Text("readFile Called\n\0", 1);
+//printString_Text("readFile Called\n\0", 1);
 		readFile(bx, cx, dx);
 		break;
 	case 4:
 
-printString_Text("runProgram Called\n\0", 1);
+//printString_Text("runProgram Called\n\0", 1);
 		runProgram(bx, cx);
 		break;
 	case 5:
-printString_Text("stop Called\n\0", 1);
+//printString_Text("stop Called\n\0", 1);
 		stop();
 		break;
 	case 6:
-printString_Text("writeSector Called\n\0", 1);
+//printString_Text("writeSector Called\n\0", 1);
 		writeSector(bx, cx);
 		break;
 	case 7:
-printString_Text("deleteFile Called\n\0", 1);
+//printString_Text("deleteFile Called\n\0", 1);
 		deleteFile(bx);
 		break;
 
  	case 8:
-        printString_Text("writeFile Called\n\0", 1);
+//        printString_Text("writeFile Called\n\0", 1);
 		writeFile(bx,cx,dx);
 		break;
 	 case 9:
-        printString_Text("Int 9 called\n\0", 1);
+//        printString_Text("Int 9 called\n\0", 1);
 		break; 
 case 10:
-        printString_Text("Int 10 called\n\0", 1);
+///        printString_Text("Int 10 called\n\0", 1);
 		break;
 	case 11:
-        printString_Text("Int 11 called\n\0", 1);
+//        printString_Text("Int 11 called\n\0", 1);
 		break;
 	case 12:
-		printString_Text("Stuff happened", 1);
-		ClearScreen_Text(bx, cx);
+//		printString_Text("Stuff happened", 1);
+		clearScreen(bx, cx);
 		break;
 	case 13:
 	//	printString_Text("writeInt_Text Called\n\0", 1);
         	writeInt_Text(bx, cx);
 		break;
 	case 14:
-        printString_Text("readInt Called\n\0", 1);	
+       // printString_Text("readInt Called\n\0", 1);	
 		readInt_Text(bx);
 		break;
 	case 15:
