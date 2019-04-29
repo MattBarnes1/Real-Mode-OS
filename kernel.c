@@ -69,12 +69,13 @@ typedef struct
 
 void main()
 {
+	int i;
  	makeInterrupt21();
 	switchVideoMode_Text(0x6A);
-	clearScreen(0x01, 0x0B);
-	printLogo();	
+clearScreen(0x01, 0x0B);
+		
+printLogo();	
 	interrupt(33,4,"kitty1\0",3,0);
-
 	
 	stop();
 }
@@ -217,28 +218,28 @@ void HideCursor()
 void setCursorPosition_Text(int X, int Y)
 {	
     	int AX;
-    	int DX;
-	if(xCursor > ScreenTextRows)
+    	int DX;	
+	if(X > ScreenTextColumns)
 	{
-		xCursor = 0;
-		yCursor++;
+		X = 0;
+		Y++;
 	} 
-	if(yCursor > ScreenTextColumns)
+	if(Y > ScreenTextRows)
 	{
-		yCursor--; //keep it on the right screen;
-		xCursor = 0;		
+		Y--; //keep it on the right screen;
+		X = 0;		
 		ScrollDown_Text();
 	}
+	xCursor = X;
+	yCursor = Y;
 	AX = SetRegister(2, 0);
 	DX = SetRegister(Y, X);
-	xCursor = X;
-	yCursor = Y;	
 	interrupt(16, AX, 0, 0,DX);
 }
 
 void ScrollDown_Text()
 {
-	interrupt(0x10, SetRegister(0x06, 1), SetRegister(abackground, 0),0, 	SetRegister(ScreenTextRows, ScreenTextColumns));
+	interrupt(0x10, SetRegister(0x06, 1), SetRegister(0x4, 0x3),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 }
 
 
@@ -664,20 +665,20 @@ void deleteFile(char *FileNameToDelete)
 
 void writeCharacter_Text(char c)
 {	
-	int BX;
-	int AX = SetRegister(0xE, c);
+	int AX = SetRegister(0x9, c);
 	if(c == '\0') return;
 	if(c == '\r') return;
 	if(c == '\n')
 	{	
-		xCursor = 1;
+		xCursor = 0;
 		yCursor++;
+		setCursorPosition_Text(xCursor, yCursor);
 	}
 	else {
 		xCursor++;
-		interrupt(16, AX, SetRegister(0, abackground | aforeground), 0, 0);
+		setCursorPosition_Text(xCursor, yCursor);
+		interrupt(16, AX, SetRegister(0, abackground | aforeground),1, 0);
 	}
-	setCursorPosition_Text(xCursor, yCursor);
 }
 
 
@@ -691,12 +692,12 @@ void switchVideoMode_Text(int x)
 
 void ScrollUp_Text()
 {
-	interrupt(0x10, SetRegister(0x07, 1),SetRegister(abackground, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
+	interrupt(0x10, SetRegister(0x07, 1),SetRegister(abackground | aforeground, 0),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 	setCursorPosition_Text(xCursor, yCursor);	
 }
 
 
-void SetScreenColor_Text(char background, char foreground)
+void SetScreenColor_Text(int background, int foreground)
 {
 	abackground = background;
 	aforeground = foreground;
@@ -800,6 +801,12 @@ void printLogo()
 	printString_Text("   //   \\\\        | |_) | | (_| | (__|   <| |__| | |__| |____) |\r\n\0", 0);
 	printString_Text("._/'     `\\.      |____/|_|\\__,_|\\___|_|\\_\\_____/ \\____/|_____/\r\n\0", 0);
 	printString_Text(" BlackDOS2020 v. 0.00.0.1, c. 2018. Based on a project by M. Black. \r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 }
 

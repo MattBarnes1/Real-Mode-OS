@@ -4,13 +4,13 @@ dd if=bootload of=floppya.img bs=512 count=1 conv=notrunc
 dd if=map of=floppya.img bs=512 count=1 seek=256 conv=notrunc 
 dd if=config of=floppya.img bs=512 count=1 seek=258 conv=notrunc
 bcc -ansi -c -o kernel.o kernel.c
-bcc -ansi -c -o Math.o Math.c
-bcc -ansi -c -o DiskIO.o DiskIO.c
-bcc -ansi -c -o String.o string.c
-bcc -ansi -c -o UtilityItems.o UtilityItems.c 
+#bcc -ansi -c -o Math.o Math.c
+#bcc -ansi -c -o DiskIO.o DiskIO.c
+#bcc -ansi -c -o String.o string.c
+#bcc -ansi -c -o UtilityItems.o UtilityItems.c 
 gcc -o loadFile loadFile.c
 as86 kernel.asm -o kasm.o
-ld86 -o kernel -d kernel.o kasm.o Math.o DiskIO.o String.o UtilityItems.o
+ld86 -o kernel -d kernel.o kasm.o 
 dd if=kernel of=floppya.img bs=512 conv=notrunc seek=259 
 ./loadFile kitty1
 bcc -ansi -c -o fib.o fib.c
