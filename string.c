@@ -64,7 +64,6 @@ int strcmp(char *str1, char *str2)
 		counter = str1Len;
 
 	if(counter == 0) return 1;
-	interrupt(33,13,counter,1,0);
 	for(i; i < counter; i++)
 	{
 		if(str1[i] != str2[i])
@@ -77,19 +76,14 @@ int strcmp(char *str1, char *str2)
 	{
 		if(str1Len == str2Len)
 		{
-			return 0;
-		} 
-		else if(str1Len < str2Len)
-		{
-			return 1;
+			return 0; 
 		} else {
-			return 2;
+			return i;
 		}
 	} 
 	else {
-		return 1;
+		return i;
 	}
-
 }
 /*
 char *strstr(char *str1, char *str2)

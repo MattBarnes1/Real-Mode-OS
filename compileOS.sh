@@ -17,3 +17,7 @@ bcc -ansi -c -o fib.o fib.c
 as86 blackdos.asm -o bdos_asm.o
 ld86 -o fib -d fib.o bdos_asm.o
 ./loadFile fib
+bcc -ansi -c -o Shell.o Shell.c
+ld86 -o Shell -d Shell.o bdos_asm.o String.o
+./loadFile Shell
+

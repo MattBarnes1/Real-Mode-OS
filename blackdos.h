@@ -5,9 +5,13 @@
 #define SCANS(x)   interrupt(33,1,x,0,0)
 #define SCANN(x)   interrupt(33,14,&x,0,0)
 #define END        interrupt(33,5,0,0,0)
-#define CLRSCRN()  interrupt(33,12,0x100,0,0)
+#define CLRSCRN(BACK, FORE)  interrupt(33,12,BACK,FORE,0)
 #define BOOT() interrupt(33,11,0,0,0)
-#define RM(FileName) interrupt(33, 7, &FileName,0,0)
-#define ERROR(
-//#define READFILE(FileName) interrupt(33, 
-#define exec(FileName)
+#define RM(FileName) interrupt(33, , &FileName,0,0)
+#define ERROR(33, 2, 0,0,0)
+#define WRITEFILE(FILENAME, TEXT) interrupt(
+#define EXEC(FileName)
+#define CREATEFILE(FILENAME)
+#define READFILE(FILENAME)
+#define REMOVEFILE(FILENAME)
+		
