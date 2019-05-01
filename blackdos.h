@@ -7,11 +7,9 @@
 #define END        interrupt(33,5,0,0,0)
 #define CLRSCRN(BACK, FORE)  interrupt(33,12,BACK,FORE,0)
 #define BOOT() interrupt(33,11,0,0,0)
-#define RM(FileName) interrupt(33, , &FileName,0,0)
-#define ERROR(33, 2, 0,0,0)
-#define WRITEFILE(FILENAME, TEXT) interrupt(
-#define EXEC(FileName)
-#define CREATEFILE(FILENAME)
-#define READFILE(FILENAME)
-#define REMOVEFILE(FILENAME)
+#define RM(FileName) interrupt(33, 7, FileName,0,0)
+#define ERROR() interrupt(33, 2, 2,0,0)
+#define WRITEFILE(FILENAME, TEXT) interrupt(33,8, FILENAME, TEXT,0)
+#define EXEC(FileName) interrupt(33,4,FileName, 4,0)
+#define READFILE(FILENAME, BUFFER) interrupt(33,3,FILENAME, &BUFFER, 0) 
 		

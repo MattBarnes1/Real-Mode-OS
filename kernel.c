@@ -880,7 +880,7 @@ void error(int myErrorCode)
 
 void runProgram(int bx, int cx)
 {
-	char Data[512];
+	char Data[1024];
 	char *Test = Data;
 	int i = 0, g = 0;
 	int size = 0;
