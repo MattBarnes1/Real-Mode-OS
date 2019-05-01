@@ -71,7 +71,7 @@ void main()
 	int i;
  	makeInterrupt21();
 	switchVideoMode_Text(0x6A);
-clearScreen(0x01, 0x0B);
+//clearScreen(0x01, 0x0B);
 		/*for(i = 0; i < 100; i++)
 		{
 			if(i != 99)
@@ -690,7 +690,7 @@ void writeCharacter_Text(char c)
 	}
 	else {
 		xCursor++;
-		interrupt(16, AX, SetRegister(abackground, aforeground),1, 0);
+		interrupt(16, AX, SetRegister(0, abackground | aforeground),1, 0);
 		setCursorPosition_Text(xCursor, yCursor);
 	}
 }
@@ -740,7 +740,7 @@ void printString_Text(char* c, int printval)
 
 		while (*c != '\0')
 		{
-			writeCharacter_Text(*c, 0);
+			writeCharacter_Text(*c);
 			c++;
 		}
 	}
