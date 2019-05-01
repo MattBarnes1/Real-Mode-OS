@@ -2,9 +2,9 @@
 
 void main()
 {
-//   int i, a = 1, b = 1, c, n;
+   int i, a = 1, b = 1, c, n;
    PRINTS("How many terms? \0");
-   /*SCANN(n);
+   SCANN(n);
    if (n < 3) n = 3;
    PRINTN(n);
    PRINTS(" terms: \0");
@@ -20,6 +20,6 @@ void main()
       a = b;
       b = c;
    }
-   PRINTS("\r\n\0");*/
+   PRINTS("\r\n\0");
    END;
 }

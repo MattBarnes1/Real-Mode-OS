@@ -71,7 +71,7 @@ void main()
 	int i;
  	makeInterrupt21();
 	switchVideoMode_Text(0x6A);
-//clearScreen(0x01, 0x0B);
+clearScreen(0x01, 0x0B);
 		/*for(i = 0; i < 100; i++)
 		{
 			if(i != 99)
@@ -88,9 +88,10 @@ void main()
 				printString_Text("\nk\0", 0);
 		}*/
 
-	printLogo();	
-	interrupt(33,4,"kitty1\0",3,0);
-	
+	//printLogo();	
+	interrupt(33,4,"fib\0",2,0);
+	interrupt(33,0,"Bad or missing command interpreter.\r\n\0",0,0);
+	while (1);
 	stop();
 }
 
@@ -101,7 +102,7 @@ void KeyboardInterrupt()
 }
 
 
-int abackground = 0x0;
+ int abackground = 0x0;
 int aforeground = 0xA;
 int ScreenTextColumns = 99;
 int ScreenTextRows = 36;
@@ -233,17 +234,18 @@ void setCursorPosition_Text(int X, int Y)
 {	
     	int AX;
     	int DX;	
-	if(X >= ScreenTextColumns)
+	if(X == ScreenTextColumns)
 	{
 		X = 0;
 		Y++;
 	} 
-	if(Y >= ScreenTextRows)
+	if(Y == ScreenTextRows && Y > 0)
 	{
 		Y--; //keep it on the right screen;
 		X = 0;		
 		ScrollDown_Text();
 	}
+	
 	xCursor = X;
 	yCursor = Y;
 	AX = SetRegister(2, 0);
@@ -253,6 +255,7 @@ void setCursorPosition_Text(int X, int Y)
 
 void ScrollDown_Text()
 {
+	writeInt_Text(SetRegister(abackground, aforeground),1);
 	interrupt(0x10, SetRegister(0x06, 1), SetRegister(abackground, aforeground),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 }
 
@@ -723,10 +726,27 @@ void clearScreen(char Background, char Foreground)
 {	
     int BX;
     if(Background <= 8 && Foreground <= 16 && Background > 0 && Foreground > 0)
-    {  
-        BX = SetRegister(Background-1, Foreground-1);   
-        SetScreenColor_Text(Background-1,Foreground-1);
+    {    
+   printString_Text("Before Setting BACK\n\0", 1);
+	   writeInt_Text(abackground, 1);
+   printString_Text("\n\0", 1);
+	   writeInt_Text(aforeground, 1);  
+        BX = SetRegister(Background-1, Foreground-1);  
+   printString_Text("\nFirst Setting BACK\n\0", 1);
+	   writeInt_Text(BX, 1); 
+        SetScreenColor_Text(Background-1,Foreground-1);  
+   printString_Text("\nAFter Setting BACK\n\0", 1);
+	   writeInt_Text(abackground, 1);
+printString_Text("\n\0", 1);
+	   writeInt_Text(aforeground, 1);  
+   printString_Text("Finish\n\0", 1);
 		setCursorPosition_Text(0,0);
+  printString_Text("\nFirst Setting BACK2\n\0", 1);
+   printString_Text("\nAFter Setting BACK\n\0", 1);
+	   writeInt_Text(abackground, 1);
+printString_Text("\n\0", 1);
+	   writeInt_Text(aforeground, 1);
+printString_Text("\n\0", 1);
         interrupt(0x10, SetRegister(0x06, 0),BX,0, SetRegister(ScreenTextRows, ScreenTextColumns));
         setCursorPosition_Text(0,0);	   
     }
@@ -784,7 +804,10 @@ void readString_Text(char* CharArray)
 		}
 		else
 		{
-			writeCharacter_Text(*c);
+			xCursor--;
+			setCursorPosition_Text(xCursor, yCursor);
+			writeCharacter_Text(' ');
+			setCursorPosition_Text(--xCursor, yCursor);
 			PointerPosition--;
 			if (PointerPosition < 0)
 			{
@@ -809,35 +832,13 @@ void readInt_Text(int *Int)
 
 void printLogo()
 {
-	interrupt(0x21, 0, "       ___   `._   ____  _            _    _____   ____   _____ \r\n\0", 0, 0);
+	printString_Text("       ___   `._   ____  _            _    _____   ____   _____ \r\n\0", 0);
 	printString_Text("      /   \\__/__> |  _ \\| |          | |  |  __ \\ / __ \\ / ____|\r\n\0", 0);
 	printString_Text("     /_  \\  _/    | |_) | | __ _  ___| | _| |  | | |  | | (___ \r\n\0", 0);
 	printString_Text("    // \\ /./      |  _ <| |/ _` |/ __| |/ / |  | | |  | |\\___ \\ \r\n\0", 0);
 	printString_Text("   //   \\\\        | |_) | | (_| | (__|   <| |__| | |__| |____) |\r\n\0", 0);
 	printString_Text("._/'     `\\.      |____/|_|\\__,_|\\___|_|\\_\\_____/ \\____/|_____/\r\n\0", 0);
 	printString_Text(" BlackDOS2020 v. 0.00.0.1, c. 2018. Based on a project by M. Black. \r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
-	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 }
 
@@ -903,11 +904,18 @@ void stop()
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
+	char *change;
+	aforeground = 0x0A;
+	abackground = 0x00;
 	switch (ax) {
 	case 0:
-    printString_Text("Print String Called\0", 1);
-    printString_Text(bx, 1);
-		printString_Text(bx, cx);
+   printString_Text("fore\n\0", 1);
+	writeInt_Text(aforeground, 1);
+   printString_Text("back\n\0", 1);
+	writeInt_Text(abackground, 1);
+   printString_Text("\n\0", 1);
+		//change = (char *)bx;
+    		printString_Text( bx, cx);
 		break;
 	case 1:
 //printString_Text("Read String Called\n\0", 1);
@@ -951,6 +959,7 @@ case 10:
 		break;
 	case 11:
 //        printString_Text("Int 11 called\n\0", 1);
+		interrupt(25,0,0,0,0);
 		break;
 	case 12:
 		printString_Text("Stuff happened", 1);
@@ -958,6 +967,9 @@ case 10:
 		break;
 	case 13:
 	//	printString_Text("writeInt_Text Called\n\0", 1);
+
+	aforeground = 0x0A;
+	abackground = 0x00;
         	writeInt_Text(bx, cx);
 		break;
 	case 14:
