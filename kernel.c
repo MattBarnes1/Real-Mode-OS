@@ -54,7 +54,6 @@ unsigned int divu(unsigned int a, unsigned int b);
 int strlen(char *String);
 char *strcpy(char *dest, char *src);
 void memset(void *myArray, char myValue, int amount);
-void printString_Text(char *String, int Print);
 int SetRegister(char high, char low);
 /* Converts ints to strings */
 char * itostr(int myInt);
@@ -73,8 +72,23 @@ void main()
  	makeInterrupt21();
 	switchVideoMode_Text(0x6A);
 clearScreen(0x01, 0x0B);
-		
-printLogo();	
+		/*for(i = 0; i < 100; i++)
+		{
+			if(i != 99)
+			{
+				printString_Text("k\0", 0);
+			} else {
+				printString_Text("x\0", 0);
+
+			}
+
+		}
+		for(i = 0; i < 37; i++)
+		{
+				printString_Text("\nk\0", 0);
+		}*/
+
+	printLogo();	
 	interrupt(33,4,"kitty1\0",3,0);
 	
 	stop();
@@ -89,10 +103,10 @@ void KeyboardInterrupt()
 
 int abackground = 0x0;
 int aforeground = 0xA;
-int ScreenTextColumns = 100;
-int ScreenTextRows = 39;
+int ScreenTextColumns = 99;
+int ScreenTextRows = 36;
 int xCursor = 0;
-int yCursor = 0;
+int yCursor = 1;
 
 void ShowCursor()
 {
@@ -219,12 +233,12 @@ void setCursorPosition_Text(int X, int Y)
 {	
     	int AX;
     	int DX;	
-	if(X > ScreenTextColumns)
+	if(X >= ScreenTextColumns)
 	{
 		X = 0;
 		Y++;
 	} 
-	if(Y > ScreenTextRows)
+	if(Y >= ScreenTextRows)
 	{
 		Y--; //keep it on the right screen;
 		X = 0;		
@@ -239,7 +253,7 @@ void setCursorPosition_Text(int X, int Y)
 
 void ScrollDown_Text()
 {
-	interrupt(0x10, SetRegister(0x06, 1), SetRegister(0x4, 0x3),0, SetRegister(ScreenTextRows, ScreenTextColumns));
+	interrupt(0x10, SetRegister(0x06, 1), SetRegister(abackground, aforeground),0, SetRegister(ScreenTextRows, ScreenTextColumns));
 }
 
 
@@ -311,7 +325,7 @@ int strcmp(char *str1, char *str2)
 		counter = str1Len;
 
 	if(counter == 0) return 1;
-	interrupt(33,13,counter,1,0);
+	//interrupt(33,13,counter,1,0);
 	for(i; i < counter; i++)
 	{
 		if(str1[i] != str2[i])
@@ -676,8 +690,8 @@ void writeCharacter_Text(char c)
 	}
 	else {
 		xCursor++;
+		interrupt(16, AX, SetRegister(abackground, aforeground),1, 0);
 		setCursorPosition_Text(xCursor, yCursor);
-		interrupt(16, AX, SetRegister(0, abackground | aforeground),1, 0);
 	}
 }
 
@@ -720,12 +734,13 @@ void clearScreen(char Background, char Foreground)
 
 void printString_Text(char* c, int printval)
 {	
+	int AX;
 	if (printval == 0)
 	{
 
 		while (*c != '\0')
 		{
-			writeCharacter_Text(*c);
+			writeCharacter_Text(*c, 0);
 			c++;
 		}
 	}
@@ -794,13 +809,29 @@ void readInt_Text(int *Int)
 
 void printLogo()
 {
-	printString_Text("       ___   `._   ____  _            _    _____   ____   _____ \r\n\0", 0);
+	interrupt(0x21, 0, "       ___   `._   ____  _            _    _____   ____   _____ \r\n\0", 0, 0);
 	printString_Text("      /   \\__/__> |  _ \\| |          | |  |  __ \\ / __ \\ / ____|\r\n\0", 0);
 	printString_Text("     /_  \\  _/    | |_) | | __ _  ___| | _| |  | | |  | | (___ \r\n\0", 0);
 	printString_Text("    // \\ /./      |  _ <| |/ _` |/ __| |/ / |  | | |  | |\\___ \\ \r\n\0", 0);
 	printString_Text("   //   \\\\        | |_) | | (_| | (__|   <| |__| | |__| |____) |\r\n\0", 0);
 	printString_Text("._/'     `\\.      |____/|_|\\__,_|\\___|_|\\_\\_____/ \\____/|_____/\r\n\0", 0);
 	printString_Text(" BlackDOS2020 v. 0.00.0.1, c. 2018. Based on a project by M. Black. \r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
+	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
 	printString_Text(" Author(s): Matthew Barnes.\r\n\r\n\0", 0);
@@ -874,7 +905,8 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
 	switch (ax) {
 	case 0:
-//    printString_Text("Print String Called\n\0", 1);
+    printString_Text("Print String Called\0", 1);
+    printString_Text(bx, 1);
 		printString_Text(bx, cx);
 		break;
 	case 1:
@@ -921,7 +953,7 @@ case 10:
 //        printString_Text("Int 11 called\n\0", 1);
 		break;
 	case 12:
-//		printString_Text("Stuff happened", 1);
+		printString_Text("Stuff happened", 1);
 		clearScreen(bx, cx);
 		break;
 	case 13:
