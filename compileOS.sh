@@ -21,3 +21,9 @@ bcc -ansi -c -o shell.o Shell.c
 ld86 -o Shell -d shell.o bdos_asm.o Math.o string.o
 ./loadFile Shell
 ./loadFile Stenv
+bcc -ansi -c -o t3.o t3.c
+ld86 -o t3 -d t3.o bdos_asm.o
+./loadFile t3
+bcc -ansi -c -o cal.o cal.c
+ld86 -o cal -d cal.o bdos_asm.o
+./loadFile cal

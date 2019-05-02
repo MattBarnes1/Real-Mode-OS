@@ -40,6 +40,14 @@ char *strcpy(char *dest, char *src)
 	dest = RetVal; 
 	return dest;
 }*/
+
+
+
+
+
+
+
+
 /*Compares two string*/	
 /*
 if Return value > 1 then it indicates str1 is less than str2.
@@ -85,6 +93,12 @@ int strcmp(char *str1, char *str2)
 		return 999;
 	}
 }
+
+
+
+
+
+
 /*
 char *strstr(char *str1, char *str2)
 {
