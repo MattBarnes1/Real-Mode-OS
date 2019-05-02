@@ -82,7 +82,7 @@ int strcmp(char *str1, char *str2)
 		}
 	} 
 	else {
-		return i;
+		return 999;
 	}
 }
 /*

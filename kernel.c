@@ -69,6 +69,8 @@ typedef struct
 void main()
 {
 	int i;
+	//xCursor = 0;
+//yCursor = 0;
  	makeInterrupt21();
 	switchVideoMode_Text(0x6A);
 clearScreen(0x01, 0x0B);
@@ -89,7 +91,7 @@ clearScreen(0x01, 0x0B);
 		}*/
 
 	//printLogo();	
-	interrupt(33,4,"fib\0",2,0);
+	interrupt(33,4,"Shell\0",2,0);
 	interrupt(33,0,"Bad or missing command interpreter.\r\n\0",0,0);
 	while (1);
 	stop();
@@ -595,13 +597,13 @@ void readFile(char* fname, char* buffer, int* size)
 	interrupt(33, 15, 0, 0,0);
 }
 
+	char StringsInner[16][9];// = (char **)malloc(16 * sizeof(char *));
 
 char ** GetFiles()
 {	
 	int i = 0;
 	int cCount = 0;
 	char myChars[2];
-	char StringsInner[16][9];// = (char **)malloc(16 * sizeof(char *));
 	char Sectors[512];
 	struct DiskDirectory *MyData;
 	readSector(Sectors, 257);
@@ -614,16 +616,15 @@ char ** GetFiles()
 
 			//StringsInner[cCount] = (char *)malloc(9);
 			strcpy(StringsInner[cCount], MyData->Entries[i].EntryName);
-
+			//printString_Text(StringsInner[cCount], 0);
 			StringsInner[cCount][8] = 0;
 			cCount++;
-		} 
-	}
-	if(cCount != 15)
-	{
-		cCount++;
+		} else if(cCount != 15)
+		{
+			cCount++;
 		
-		StringsInner[cCount][0] = 0;
+			StringsInner[cCount][0] = 0;
+		} 
 	}	
 
 	return StringsInner;
@@ -880,7 +881,7 @@ void error(int myErrorCode)
 
 void runProgram(int bx, int cx)
 {
-	char Data[1024];
+	char Data[4096];
 	char *Test = Data;
 	int i = 0, g = 0;
 	int size = 0;
@@ -904,6 +905,7 @@ void stop()
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
 {
+	int  i=0;
 	char *change;
 	aforeground = 0x0A;
 	abackground = 0x00;
@@ -918,7 +920,7 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
     		printString_Text( bx, cx);
 		break;
 	case 1:
-//printString_Text("Read String Called\n\0", 1);
+printString_Text("Read String Called\n\0", 1);
 		readString_Text(bx);
 		break;
 	case 2:
@@ -986,6 +988,20 @@ printString_Text("Int 16\n\0", 1);
 	case 17:
 printString_Text("writeCharacter_Text Called\n\0", 1);
 		writeCharacter_Text(bx);
+		break;
+	case 18:
+printString_Text("writeCharacter_Text Called\n\0", 1);
+		GetFiles();
+		for(i = 0; i < 16; i++)
+		{
+			if(StringsInner[i][0] != 0 && StringsInner[i][0] > 0x60)
+			{
+				printString_Text("\n\n\0",0);
+				printString_Text(StringsInner[i], 0);
+				printString_Text("\n\n\0",0);
+				strcpy(((char *)bx)[i], StringsInner[i]);
+			}
+		}
 		break;
 	default: 
 printString_Text("Empty Called\n\0", 1);

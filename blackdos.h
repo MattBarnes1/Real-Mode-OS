@@ -9,7 +9,7 @@
 #define BOOT() interrupt(33,11,0,0,0)
 #define RM(FileName) interrupt(33, 7, FileName,0,0)
 #define ERROR() interrupt(33, 2, 2,0,0)
-#define WRITEFILE(FILENAME, TEXT) interrupt(33,8, FILENAME, TEXT,0)
+#define WRITEFILE(FILENAME, TEXT, SECTORS) interrupt(33,8, FILENAME, &TEXT,SECTORS)
 #define EXEC(FileName) interrupt(33,4,FileName, 4,0)
-#define READFILE(FILENAME, BUFFER) interrupt(33,3,FILENAME, &BUFFER, 0) 
-		
+#define READFILE(FILENAME, BUFFER, SIZE) interrupt(33,3,FILENAME, &BUFFER, &SIZE) 
+#define GETFILES(Files) interrupt(33, 18, Files, 0,0)	
